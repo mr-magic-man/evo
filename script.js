@@ -3,7 +3,6 @@ function runSimulation() {
   const generations = parseInt(document.getElementById("generations").value);
   const popSize = parseInt(document.getElementById("populationSize").value);
 
-  // Calculate initial allele frequencies from q^2 = freq(aa)
   let q = Math.sqrt(freqaaInit);
   let p = 1 - q;
 
@@ -37,29 +36,31 @@ function runSimulation() {
 
     let countAA = 0, countAa = 0, countaa = 0;
     offspring.forEach(pair => {
-      const genotype = pair.sort().join("");
-      if (genotype === "AA") countAA++;
-      else if (genotype === "Aa") countAa++;
-      else if (genotype === "aa") countaa++;
+      const sorted = pair.sort().join("");
+      if (sorted === "AA") countAA++;
+      else if (sorted === "Aa") countAa++;
+      else if (sorted === "aa") countaa++;
     });
 
     const freqAA = countAA / popSize;
     const freqAa = countAa / popSize;
     const freqaa = countaa / popSize;
 
-    results.push(`Gen ${gen}: AA=${freqAA.toFixed(3)}, Aa=${freqAa.toFixed(3)}, aa=${freqaa.toFixed(3)}`);
+    results.push(`Gen ${gen} → AA: ${countAA} (${freqAA.toFixed(3)}), Aa: ${countAa} (${freqAa.toFixed(3)}), aa: ${countaa} (${freqaa.toFixed(3)})`);
 
     chartData.labels.push(`Gen ${gen}`);
     chartData.AA.push(freqAA);
     chartData.Aa.push(freqAa);
     chartData.aa.push(freqaa);
 
+    // update allele frequencies for next gen
     const totalA = countAA * 2 + countAa;
     const totala = countaa * 2 + countAa;
     p = totalA / (2 * popSize);
     q = totala / (2 * popSize);
   }
 
+  // Display raw data
   document.getElementById("results").textContent = results.join("\n");
 
   // Draw chart
@@ -92,6 +93,7 @@ function runSimulation() {
     },
     options: {
       responsive: true,
+      animation: false,
       scales: {
         y: {
           min: 0,
