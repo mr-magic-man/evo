@@ -1,17 +1,23 @@
 function runSimulation() {
-  const pInit = parseFloat(document.getElementById("alleleA").value);
+  const freqaaInit = parseFloat(document.getElementById("freqaa").value);
   const generations = parseInt(document.getElementById("generations").value);
   const popSize = parseInt(document.getElementById("populationSize").value);
 
-  let p = pInit;
-  let q = 1 - p;
+  // Calculate initial allele frequencies from q^2 = freq(aa)
+  let q = Math.sqrt(freqaaInit);
+  let p = 1 - q;
 
   const results = [];
+  const chartData = {
+    labels: [],
+    AA: [],
+    Aa: [],
+    aa: []
+  };
 
   for (let gen = 0; gen <= generations; gen++) {
     let population = [];
 
-    // Generate individuals based on Hardy-Weinberg proportions and population size
     const expectedAA = Math.round(p * p * popSize);
     const expectedAa = Math.round(2 * p * q * popSize);
     const expectedaa = popSize - expectedAA - expectedAa;
@@ -20,7 +26,6 @@ function runSimulation() {
     for (let i = 0; i < expectedAa; i++) population.push(["A", "a"]);
     for (let i = 0; i < expectedaa; i++) population.push(["a", "a"]);
 
-    // Random mating
     const offspring = [];
     for (let i = 0; i < popSize; i++) {
       const parent1 = population[Math.floor(Math.random() * popSize)];
@@ -30,7 +35,6 @@ function runSimulation() {
       offspring.push([allele1, allele2]);
     }
 
-    // Count genotypes in offspring
     let countAA = 0, countAa = 0, countaa = 0;
     offspring.forEach(pair => {
       const genotype = pair.sort().join("");
@@ -45,7 +49,11 @@ function runSimulation() {
 
     results.push(`Gen ${gen}: AA=${freqAA.toFixed(3)}, Aa=${freqAa.toFixed(3)}, aa=${freqaa.toFixed(3)}`);
 
-    // Update allele frequencies for next generation
+    chartData.labels.push(`Gen ${gen}`);
+    chartData.AA.push(freqAA);
+    chartData.Aa.push(freqAa);
+    chartData.aa.push(freqaa);
+
     const totalA = countAA * 2 + countAa;
     const totala = countaa * 2 + countAa;
     p = totalA / (2 * popSize);
@@ -53,4 +61,53 @@ function runSimulation() {
   }
 
   document.getElementById("results").textContent = results.join("\n");
+
+  // Draw chart
+  const ctx = document.getElementById("frequencyChart").getContext("2d");
+  if (window.chart) window.chart.destroy();
+  window.chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartData.labels,
+      datasets: [
+        {
+          label: 'AA',
+          data: chartData.AA,
+          borderColor: 'blue',
+          fill: false
+        },
+        {
+          label: 'Aa',
+          data: chartData.Aa,
+          borderColor: 'green',
+          fill: false
+        },
+        {
+          label: 'aa',
+          data: chartData.aa,
+          borderColor: 'red',
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          min: 0,
+          max: 1,
+          title: {
+            display: true,
+            text: 'Genotype Frequency'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Generation'
+          }
+        }
+      }
+    }
+  });
 }
