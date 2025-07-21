@@ -1,7 +1,7 @@
 function runSimulation() {
   const homozygousRecessiveCount = parseInt(document.getElementById("homozygousRecessive").value);
+  let populationSize = parseInt(document.getElementById("populationSize").value);
   const generations = parseInt(document.getElementById("generations").value);
-  const populationSize = parseInt(document.getElementById("populationSize").value);
   const carryingCapacity = parseInt(document.getElementById("carryingCapacity").value);
   const fitnessAA = parseFloat(document.getElementById("fitnessAA").value);
   const fitnessAa = parseFloat(document.getElementById("fitnessAa").value);
@@ -9,16 +9,16 @@ function runSimulation() {
   const driftStrength = parseFloat(document.getElementById("driftStrength").value);
 
   const resultsEl = document.getElementById("results");
-  resultsEl.textContent = "";
+  resultsEl.value = "";
 
   const chartData = {
     labels: [],
-    aa: [],
-    Aa: [],
     AA: [],
+    Aa: [],
+    aa: []
   };
 
-  // Initial frequencies using Hardy-Weinberg
+  // Initial allele frequency using Hardy-Weinberg from q^2
   const q2 = homozygousRecessiveCount / populationSize;
   const q = Math.sqrt(q2);
   const p = 1 - q;
@@ -28,46 +28,45 @@ function runSimulation() {
   let aa = populationSize - AA - Aa;
 
   for (let gen = 0; gen <= generations; gen++) {
-    // Store and display current generation
-    resultsEl.textContent += `Gen ${gen}: AA=${AA}, Aa=${Aa}, aa=${aa}, total=${AA + Aa + aa}\n`;
+    const total = AA + Aa + aa;
+    resultsEl.value += `Gen ${gen}: AA=${AA}, Aa=${Aa}, aa=${aa}, total=${total}\n`;
+
     chartData.labels.push(gen);
     chartData.AA.push(AA);
     chartData.Aa.push(Aa);
     chartData.aa.push(aa);
 
-    // Calculate fitness-adjusted contributions
-    let totalFitness =
-      fitnessAA * AA + fitnessAa * Aa + fitnessaa * aa;
+    // Fitness-weighted probabilities
+    const totalFitness = (AA * fitnessAA) + (Aa * fitnessAa) + (aa * fitnessaa);
+    if (totalFitness === 0) break;
 
-    if (totalFitness === 0) break; // Avoid division by 0
+    const probAA = (AA * fitnessAA) / totalFitness;
+    const probAa = (Aa * fitnessAa) / totalFitness;
+    const probaa = (aa * fitnessaa) / totalFitness;
 
-    // Expected offspring proportions
-    let freqAA = (fitnessAA * AA) / totalFitness;
-    let freqAa = (fitnessAa * Aa) / totalFitness;
-    let freqaa = (fitnessaa * aa) / totalFitness;
+    const normSum = probAA + probAa + probaa;
 
-    // Mating pool size capped by carrying capacity
-    let nextGenSize = Math.min(carryingCapacity, populationSize);
+    const expectedAA = (probAA / normSum) * carryingCapacity;
+    const expectedAa = (probAa / normSum) * carryingCapacity;
+    const expectedaa = (probaa / normSum) * carryingCapacity;
 
-    // Apply genetic drift: multinomial with added randomness
-    const randomize = (prob) =>
-      Math.max(0, Math.round(prob * nextGenSize + driftStrength * (Math.random() - 0.5) * nextGenSize));
+    const applyDrift = (expected) => {
+      const variation = driftStrength * carryingCapacity;
+      const noisy = expected + (Math.random() - 0.5) * variation;
+      return Math.max(0, Math.round(noisy));
+    };
 
-    const totalProb = freqAA + freqAa + freqaa;
-    const normAA = freqAA / totalProb;
-    const normAa = freqAa / totalProb;
-    const normaa = freqaa / totalProb;
+    AA = applyDrift(expectedAA);
+    Aa = applyDrift(expectedAa);
+    aa = Math.max(0, carryingCapacity - AA - Aa);
 
-    AA = randomize(normAA);
-    Aa = randomize(normAa);
-    aa = nextGenSize - AA - Aa;
-    populationSize = nextGenSize;
+    populationSize = AA + Aa + aa;
   }
 
   plotGraph(chartData);
 }
 
-let chart; // Store the chart instance globally
+let chart;
 
 function plotGraph(data) {
   const ctx = document.getElementById("genotypeChart").getContext("2d");
@@ -96,7 +95,7 @@ function plotGraph(data) {
           borderColor: "red",
           fill: false,
         },
-      ],
+      ]
     },
     options: {
       responsive: true,
@@ -104,23 +103,23 @@ function plotGraph(data) {
         title: {
           display: true,
           text: "Genotype Counts Over Generations",
-        },
+        }
       },
       scales: {
         x: {
           title: {
             display: true,
-            text: "Generation",
-          },
+            text: "Generation"
+          }
         },
         y: {
           title: {
             display: true,
-            text: "Number of Individuals",
+            text: "Individuals"
           },
-          beginAtZero: true,
-        },
-      },
-    },
+          beginAtZero: true
+        }
+      }
+    }
   });
 }
