@@ -1,73 +1,109 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Genetic Bimulation</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
+// Hardy-Weinberg Simulation with Selection, Drift, and Carrying Capacity
+function runSimulation() {
+  const freqaa = parseFloat(document.getElementById("freqaa").value);
+  const generations = parseInt(document.getElementById("generations").value);
+  const populationSize = parseInt(document.getElementById("populationSize").value);
+  const fitnessAA = parseFloat(document.getElementById("fitnessAA").value);
+  const fitnessAa = parseFloat(document.getElementById("fitnessAa").value);
+  const fitnessaa = parseFloat(document.getElementById("fitnessaa").value);
+  const drift = parseFloat(document.getElementById("drift").value);
+  const carryingCapacity = parseInt(document.getElementById("carryingCapacity").value);
+
+  if (isNaN(freqaa) || isNaN(generations) || isNaN(populationSize) || isNaN(fitnessAA) || isNaN(fitnessAa) || isNaN(fitnessaa) || isNaN(drift) || isNaN(carryingCapacity)) {
+    alert("Please enter valid numbers in all fields.");
+    return;
+  }
+
+  let q = Math.sqrt(freqaa);
+  let p = 1 - q;
+
+  let AA = Math.round(p * p * populationSize);
+  let Aa = Math.round(2 * p * q * populationSize);
+  let aa = populationSize - AA - Aa;
+
+  const data = [];
+
+  for (let gen = 0; gen <= generations; gen++) {
+    data.push({ gen, AA, Aa, aa });
+
+    // Apply fitness
+    let totalFitness = AA * fitnessAA + Aa * fitnessAa + aa * fitnessaa;
+    let expectedAA = (AA * fitnessAA / totalFitness) * populationSize;
+    let expectedAa = (Aa * fitnessAa / totalFitness) * populationSize;
+    let expectedaa = (aa * fitnessaa / totalFitness) * populationSize;
+
+    // Apply genetic drift
+    expectedAA = Math.round(expectedAA + (Math.random() - 0.5) * drift * expectedAA);
+    expectedAa = Math.round(expectedAa + (Math.random() - 0.5) * drift * expectedAa);
+    expectedaa = Math.round(expectedaa + (Math.random() - 0.5) * drift * expectedaa);
+
+    // Normalize to carrying capacity
+    let total = expectedAA + expectedAa + expectedaa;
+    if (total > carryingCapacity) {
+      let scale = carryingCapacity / total;
+      expectedAA = Math.round(expectedAA * scale);
+      expectedAa = Math.round(expectedAa * scale);
+      expectedaa = carryingCapacity - expectedAA - expectedAa;
     }
-    label {
-      display: block;
-      margin-top: 10px;
+
+    AA = expectedAA;
+    Aa = expectedAa;
+    aa = expectedaa;
+  }
+
+  displayResults(data);
+  drawChart(data);
+}
+
+function displayResults(data) {
+  const output = document.getElementById("results");
+  output.innerText = "";
+  data.forEach(d => {
+    output.innerText += `Generation ${d.gen}: AA=${d.AA}, Aa=${d.Aa}, aa=${d.aa}\n`;
+  });
+}
+
+function drawChart(data) {
+  const ctx = document.getElementById("frequencyChart").getContext("2d");
+
+  if (window.myChart) window.myChart.destroy();
+
+  window.myChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: data.map(d => d.gen),
+      datasets: [
+        {
+          label: "AA",
+          data: data.map(d => d.AA),
+          borderColor: "#3366cc",
+          fill: false
+        },
+        {
+          label: "Aa",
+          data: data.map(d => d.Aa),
+          borderColor: "#dc3912",
+          fill: false
+        },
+        {
+          label: "aa",
+          data: data.map(d => d.aa),
+          borderColor: "#ff9900",
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: "top"
+        },
+        title: {
+          display: true,
+          text: "Genotype Counts Over Generations"
+        }
+      }
     }
-    textarea {
-      width: 100%;
-      height: 200px;
-      margin-top: 10px;
-      font-family: monospace;
-    }
-    canvas {
-      max-width: 100%;
-      margin-top: 20px;
-    }
-  </style>
-</head>
-<body>
-  <h1>Genetics and Evolution Simulator</h1>
-
-  <label>Initial Homozygous Recessive Count (aa):
-    <input type="number" id="homozygousRecessive" value="100">
-  </label>
-
-  <label>Total Starting Population Size:
-    <input type="number" id="populationSize" value="500">
-  </label>
-
-  <label>Generations:
-    <input type="number" id="generations" value="50">
-  </label>
-
-  <label>Carrying Capacity:
-    <input type="number" id="carryingCapacity" value="500">
-  </label>
-
-  <label>Fitness of AA:
-    <input type="number" id="fitnessAA" value="1.0" step="0.1">
-  </label>
-
-  <label>Fitness of Aa:
-    <input type="number" id="fitnessAa" value="1.0" step="0.1">
-  </label>
-
-  <label>Fitness of aa:
-    <input type="number" id="fitnessaa" value="1.0" step="0.1">
-  </label>
-
-  <label>Drift Strength (0 to 1 is typical):
-    <input type="number" id="driftStrength" value="0.05" step="0.01" min="0">
-  </label>
-
-  <button onclick="runSimulation()">Run Simulation</button>
-
-  <h2>Raw Genotype Counts</h2>
-  <textarea id="results" readonly></textarea>
-
-  <h2>Graph</h2>
-  <canvas id="genotypeChart" width="600" height="400"></canvas>
-
-  <script src="script.js"></script>
-</body>
-</html>
+  });
+}
