@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Genetics Simulation</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <h1>Hardy-Weinberg Genetics Simulator</h1>
 
   <div id="controls">
-    <label for="alleleA">Initial Frequency of A:</label>
-    <input type="number" id="alleleA" value="0.5" step="0.01" min="0" max="1">
+    <label for="freqaa">Initial Frequency of Homozygous Recessive (aa):</label>
+    <input type="number" id="freqaa" value="0.25" step="0.01" min="0" max="1">
     <br>
     <label for="generations">Number of Generations:</label>
     <input type="number" id="generations" value="10" min="1">
@@ -25,6 +26,7 @@
   <div id="output">
     <h2>Results</h2>
     <pre id="results"></pre>
+    <canvas id="frequencyChart" width="600" height="400"></canvas>
   </div>
 
   <script src="script.js"></script>
