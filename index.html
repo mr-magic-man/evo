@@ -1,59 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Genetics Simulation</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Genetic Simulation</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      margin-top: 10px;
+      font-family: monospace;
+    }
+    canvas {
+      max-width: 100%;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Hardy-Weinberg Genetics Simulator</h1>
+  <h1>Genetics and Evolution Simulator</h1>
 
-  <div id="controls">
-    <label for="freq_aa">Initial Frequency of Homozygous Recessive (aa):</label>
-    <input type="number" id="freq_aa" value="0.25" step="0.01" min="0" max="1">
-    <br>
-    <label for="generations">Number of Generations:</label>
-    <input type="number" id="generations" value="10" min="1">
-    <br>
-    <label for="populationSize">Initial Population Size:</label>
-    <input type="number" id="populationSize" value="100" min="2">
-    <br>
-    <label for="carryingCapacity">Carrying Capacity:</label>
-    <input type="number" id="carryingCapacity" value="500" min="1">
-    <br>
+  <label>Initial Homozygous Recessive Count (aa):
+    <input type="number" id="homozygousRecessive" value="100">
+  </label>
 
-    <h3>Fitness (Relative Offspring Production)</h3>
-    <label for="fitnessAA">Fitness of AA:</label>
-    <input type="number" id="fitnessAA" value="1" step="0.1" min="0">
-    <br>
-    <label for="fitnessAa">Fitness of Aa:</label>
-    <input type="number" id="fitnessAa" value="1" step="0.1" min="0">
-    <br>
-    <label for="fitnessaa">Fitness of aa:</label>
-    <input type="number" id="fitnessaa" value="1" step="0.1" min="0">
-    <br>
+  <label>Total Starting Population Size:
+    <input type="number" id="populationSize" value="500">
+  </label>
 
-    <h3>Genetic Drift</h3>
-    <label for="driftStrength">Drift Strength (0 = none, 1 = max):</label>
-    <input type="range" id="driftStrength" min="0" max="1" step="0.01" value="0.5">
-    <span id="driftValue">0.5</span>
-    <script>
-      document.getElementById("driftStrength").oninput = function () {
-        document.getElementById("driftValue").textContent = this.value;
-      };
-    </script>
-    <br><br>
+  <label>Generations:
+    <input type="number" id="generations" value="50">
+  </label>
 
-    <button onclick="runSimulation()">Run Simulation</button>
-  </div>
+  <label>Carrying Capacity:
+    <input type="number" id="carryingCapacity" value="500">
+  </label>
 
-  <div id="output">
-    <h2>Results</h2>
-    <pre id="results"></pre>
-    <canvas id="chart" width="600" height="400"></canvas>
-  </div>
+  <label>Fitness of AA:
+    <input type="number" id="fitnessAA" value="1.0" step="0.1">
+  </label>
+
+  <label>Fitness of Aa:
+    <input type="number" id="fitnessAa" value="1.0" step="0.1">
+  </label>
+
+  <label>Fitness of aa:
+    <input type="number" id="fitnessaa" value="1.0" step="0.1">
+  </label>
+
+  <label>Drift Strength (0 to 1 is typical):
+    <input type="number" id="driftStrength" value="0.05" step="0.01" min="0">
+  </label>
+
+  <button onclick="runSimulation()">Run Simulation</button>
+
+  <h2>Raw Genotype Counts</h2>
+  <textarea id="results" readonly></textarea>
+
+  <h2>Graph</h2>
+  <canvas id="genotypeChart" width="600" height="400"></canvas>
 
   <script src="script.js"></script>
 </body>
