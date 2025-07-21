@@ -11,22 +11,48 @@
   <h1>Hardy-Weinberg Genetics Simulator</h1>
 
   <div id="controls">
-    <label for="freqaa">Initial Frequency of Homozygous Recessive (aa):</label>
-    <input type="number" id="freqaa" value="0.25" step="0.01" min="0" max="1">
+    <label for="freq_aa">Initial Frequency of Homozygous Recessive (aa):</label>
+    <input type="number" id="freq_aa" value="0.25" step="0.01" min="0" max="1">
     <br>
     <label for="generations">Number of Generations:</label>
     <input type="number" id="generations" value="10" min="1">
     <br>
-    <label for="populationSize">Population Size:</label>
+    <label for="populationSize">Initial Population Size:</label>
     <input type="number" id="populationSize" value="100" min="2">
     <br>
+    <label for="carryingCapacity">Carrying Capacity:</label>
+    <input type="number" id="carryingCapacity" value="500" min="1">
+    <br>
+
+    <h3>Fitness (Relative Offspring Production)</h3>
+    <label for="fitnessAA">Fitness of AA:</label>
+    <input type="number" id="fitnessAA" value="1" step="0.1" min="0">
+    <br>
+    <label for="fitnessAa">Fitness of Aa:</label>
+    <input type="number" id="fitnessAa" value="1" step="0.1" min="0">
+    <br>
+    <label for="fitnessaa">Fitness of aa:</label>
+    <input type="number" id="fitnessaa" value="1" step="0.1" min="0">
+    <br>
+
+    <h3>Genetic Drift</h3>
+    <label for="driftStrength">Drift Strength (0 = none, 1 = max):</label>
+    <input type="range" id="driftStrength" min="0" max="1" step="0.01" value="0.5">
+    <span id="driftValue">0.5</span>
+    <script>
+      document.getElementById("driftStrength").oninput = function () {
+        document.getElementById("driftValue").textContent = this.value;
+      };
+    </script>
+    <br><br>
+
     <button onclick="runSimulation()">Run Simulation</button>
   </div>
 
   <div id="output">
     <h2>Results</h2>
-    <pre id="results" style="white-space: pre-wrap; font-family: monospace;"></pre>
-    <canvas id="frequencyChart" width="600" height="400"></canvas>
+    <pre id="results"></pre>
+    <canvas id="chart" width="600" height="400"></canvas>
   </div>
 
   <script src="script.js"></script>
